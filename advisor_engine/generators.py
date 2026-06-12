@@ -27,6 +27,9 @@ class BoilerplateGenerator:
         entities = self.parsed_data.get("entities", [])
         relationships = self.parsed_data.get("relationships", [])
         
+        # Build entity metadata lookup to find nested status
+        nested_status = {e.get("name", ""): e.get("is_nested", False) for e in entities}
+        
         # Build a map of foreign keys so I know where they go, separating N:M relations
         fkeys_by_table: Dict[str, List[Dict[str, str]]] = {}
         m2m_relationships: List[Dict[str, Any]] = []
@@ -39,14 +42,26 @@ class BoilerplateGenerator:
                 m2m_relationships.append(rel)
                 continue
                 
-            # For 1:N relations, the child holds the foreign key reference
-            if cardinality in ("1:N", "ONE:MANY"):
+            # Determine child and parent tables
+            # If one is nested, it must be the child
+            if nested_status.get(from_ent, False) and not nested_status.get(to_ent, False):
+                child_table = from_ent
+                parent_table = to_ent
+            elif nested_status.get(to_ent, False) and not nested_status.get(from_ent, False):
                 child_table = to_ent
                 parent_table = from_ent
             else:
-                # Fallback default mapping (e.g. 1:1)
-                child_table = to_ent
-                parent_table = from_ent
+                # If neither or both are nested, we use the cardinality direction
+                if cardinality in ("1:N", "ONE:MANY"):
+                    child_table = to_ent
+                    parent_table = from_ent
+                elif cardinality in ("N:1", "MANY:ONE"):
+                    child_table = from_ent
+                    parent_table = to_ent
+                else:
+                    # Default fallback (e.g. 1:1)
+                    child_table = to_ent
+                    parent_table = from_ent
                 
             if child_table and parent_table:
                 if child_table not in fkeys_by_table:
@@ -73,7 +88,11 @@ class BoilerplateGenerator:
                 # Map datatype names to their SQL equivalents
                 if "json" in data_type:
                     sql_type = "JSON"
-                elif any(t in data_type for t in ("string", "varchar", "text")):
+                elif "text" in data_type:
+                    sql_type = "TEXT"
+                elif "array" in data_type:
+                    sql_type = "TEXT"
+                elif any(t in data_type for t in ("string", "varchar")):
                     sql_type = "VARCHAR(255)"
                 elif any(t in data_type for t in ("integer", "int", "number")):
                     sql_type = "INT"
@@ -145,11 +164,24 @@ class BoilerplateGenerator:
             to_ent = rel.get("to_entity", "")
             cardinality = rel.get("cardinality", "1:1")
             
-            if to_ent in nested_names:
-                if from_ent not in nested_entities_by_parent:
-                    nested_entities_by_parent[from_ent] = []
-                nested_entities_by_parent[from_ent].append({
-                    "entity_name": to_ent,
+            parent_ent = None
+            child_ent = None
+            if to_ent in nested_names and from_ent not in nested_names:
+                parent_ent = from_ent
+                child_ent = to_ent
+            elif from_ent in nested_names and to_ent not in nested_names:
+                parent_ent = to_ent
+                child_ent = from_ent
+            elif from_ent in nested_names and to_ent in nested_names:
+                # If both are nested, default to destination as the child
+                parent_ent = from_ent
+                child_ent = to_ent
+                
+            if parent_ent and child_ent:
+                if parent_ent not in nested_entities_by_parent:
+                    nested_entities_by_parent[parent_ent] = []
+                nested_entities_by_parent[parent_ent].append({
+                    "entity_name": child_ent,
                     "cardinality": cardinality
                 })
 
@@ -177,6 +209,10 @@ class BoilerplateGenerator:
                     bson_type = "date"
                 elif any(t in data_type for t in ("bool", "boolean")):
                     bson_type = "bool"
+                elif "array" in data_type:
+                    bson_type = "array"
+                elif "json" in data_type:
+                    bson_type = "object"
                 else:
                     bson_type = "string"
                     

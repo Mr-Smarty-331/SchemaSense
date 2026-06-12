@@ -65,8 +65,8 @@ class Command(BaseCommand):
             indexing = "B-Tree_Heavy"
             scaling = "Vertical"
             
-            # Rule A: Unstructured data + nested fields -> Document Store
-            if hu == 1 and ne >= 2:
+            # Rule A: Unstructured data OR nested fields -> Document Store
+            if ne > 0 or hu == 1:
                 paradigm = "Document"
                 normalization = "Denormalized_Flat"
                 indexing = "Composite_Heavy"

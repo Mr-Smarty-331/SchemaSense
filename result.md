@@ -255,3 +255,221 @@ Latest Audit Log Entry returned:
   ]
 }
 ```
+
+
+---
+
+## Test Run: 2026-06-12T09:13:52.408413Z
+
+### 1. Input Test payload (`test_requirement.json`)
+
+```json
+{
+  "entities": [
+    {
+      "name": "articles",
+      "is_nested": false,
+      "attributes": [
+        {
+          "name": "id",
+          "type": "int",
+          "is_primary_key": true,
+          "is_nullable": false
+        },
+        {
+          "name": "body_content",
+          "type": "text",
+          "is_primary_key": false,
+          "is_nullable": false
+        },
+        {
+          "name": "tags",
+          "type": "array",
+          "is_primary_key": false,
+          "is_nullable": true
+        }
+      ]
+    },
+    {
+      "name": "comments",
+      "is_nested": true,
+      "attributes": [
+        {
+          "name": "author",
+          "type": "string",
+          "is_primary_key": false,
+          "is_nullable": false
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "is_primary_key": false,
+          "is_nullable": false
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from_entity": "comments",
+      "to_entity": "articles",
+      "cardinality": "1:N"
+    }
+  ],
+  "requirements": {
+    "expected_read_write_ratio": 40.0,
+    "is_realtime_essential": false,
+    "data_growth_rate_gb_month": 80.0
+  }
+}
+```
+
+### 2. Received Output Response
+
+```json
+{
+  "status": "success",
+  "request_id": 15,
+  "recommendation": {
+    "id": 15,
+    "predicted_paradigm": "Relational",
+    "normalization_target": "3NF",
+    "indexing_strategy": "B-Tree_Heavy",
+    "scaling_strategy": "Vertical",
+    "generated_boilerplate": "CREATE TABLE articles (\n  id INT PRIMARY KEY,\n  body_content VARCHAR(255) NOT NULL,\n  tags VARCHAR(255),\n  comments_id INT,\n  FOREIGN KEY (comments_id) REFERENCES comments(id)\n);\n\nCREATE TABLE comments (\n  author VARCHAR(255) NOT NULL,\n  message VARCHAR(255) NOT NULL\n);",
+    "created_at": "2026-06-12T09:13:52.408413Z"
+  }
+}
+```
+
+### 3. Audit Logging Verification (`GET /api/v1/recommendations/`)
+
+Latest Audit Log Entry returned:
+```json
+{
+  "id": 15,
+  "payload_type": "JSON",
+  "raw_payload": "{\"entities\": [{\"name\": \"articles\", \"is_nested\": false, \"attributes\": [{\"name\": \"id\", \"type\": \"int\", \"is_primary_key\": true, \"is_nullable\": false}, {\"name\": \"body_content\", \"type\": \"text\", \"is_primary_key\": false, \"is_nullable\": false}, {\"name\": \"tags\", \"type\": \"array\", \"is_primary_key\": false, \"is_nullable\": true}]}, {\"name\": \"comments\", \"is_nested\": true, \"attributes\": [{\"name\": \"author\", \"type\": \"string\", \"is_primary_key\": false, \"is_nullable\": false}, {\"name\": \"message\", \"type\": \"text\", \"is_primary_key\": false, \"is_nullable\": false}]}], \"relationships\": [{\"from_entity\": \"comments\", \"to_entity\": \"articles\", \"cardinality\": \"1:N\"}], \"requirements\": {\"expected_read_write_ratio\": 40.0, \"is_realtime_essential\": false, \"data_growth_rate_gb_month\": 80.0}}",
+  "created_at": "2026-06-12T09:13:52.406867Z",
+  "recommendations": [
+    {
+      "id": 15,
+      "predicted_paradigm": "Relational",
+      "normalization_target": "3NF",
+      "indexing_strategy": "B-Tree_Heavy",
+      "scaling_strategy": "Vertical",
+      "generated_boilerplate": "CREATE TABLE articles (\n  id INT PRIMARY KEY,\n  body_content VARCHAR(255) NOT NULL,\n  tags VARCHAR(255),\n  comments_id INT,\n  FOREIGN KEY (comments_id) REFERENCES comments(id)\n);\n\nCREATE TABLE comments (\n  author VARCHAR(255) NOT NULL,\n  message VARCHAR(255) NOT NULL\n);",
+      "created_at": "2026-06-12T09:13:52.408413Z"
+    }
+  ]
+}
+```
+
+
+---
+
+## Test Run: 2026-06-12T09:35:50.036589Z
+
+### 1. Input Test payload (`test_requirement.json`)
+
+```json
+{
+  "entities": [
+    {
+      "name": "articles",
+      "is_nested": false,
+      "attributes": [
+        {
+          "name": "id",
+          "type": "int",
+          "is_primary_key": true,
+          "is_nullable": false
+        },
+        {
+          "name": "body_content",
+          "type": "text",
+          "is_primary_key": false,
+          "is_nullable": false
+        },
+        {
+          "name": "tags",
+          "type": "array",
+          "is_primary_key": false,
+          "is_nullable": true
+        }
+      ]
+    },
+    {
+      "name": "comments",
+      "is_nested": true,
+      "attributes": [
+        {
+          "name": "author",
+          "type": "string",
+          "is_primary_key": false,
+          "is_nullable": false
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "is_primary_key": false,
+          "is_nullable": false
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from_entity": "comments",
+      "to_entity": "articles",
+      "cardinality": "1:N"
+    }
+  ],
+  "requirements": {
+    "expected_read_write_ratio": 40.0,
+    "is_realtime_essential": false,
+    "data_growth_rate_gb_month": 80.0
+  }
+}
+```
+
+### 2. Received Output Response
+
+```json
+{
+  "status": "success",
+  "request_id": 16,
+  "recommendation": {
+    "id": 16,
+    "predicted_paradigm": "Document",
+    "normalization_target": "Denormalized_Flat",
+    "indexing_strategy": "Covering_Index",
+    "scaling_strategy": "Read_Replicas",
+    "generated_boilerplate": "{\n  \"articless\": {\n    \"$jsonSchema\": {\n      \"bsonType\": \"object\",\n      \"properties\": {\n        \"id\": {\n          \"bsonType\": \"int\"\n        },\n        \"body_content\": {\n          \"bsonType\": \"string\"\n        },\n        \"tags\": {\n          \"bsonType\": \"array\"\n        },\n        \"commentss\": {\n          \"bsonType\": \"array\",\n          \"items\": {\n            \"bsonType\": \"object\",\n            \"properties\": {\n              \"author\": {\n                \"bsonType\": \"string\"\n              },\n              \"message\": {\n                \"bsonType\": \"string\"\n              }\n            },\n            \"required\": [\n              \"author\",\n              \"message\"\n            ]\n          }\n        }\n      },\n      \"required\": [\n        \"id\",\n        \"body_content\"\n      ]\n    }\n  }\n}",
+    "created_at": "2026-06-12T09:35:50.036589Z"
+  }
+}
+```
+
+### 3. Audit Logging Verification (`GET /api/v1/recommendations/`)
+
+Latest Audit Log Entry returned:
+```json
+{
+  "id": 16,
+  "payload_type": "JSON",
+  "raw_payload": "{\"entities\": [{\"name\": \"articles\", \"is_nested\": false, \"attributes\": [{\"name\": \"id\", \"type\": \"int\", \"is_primary_key\": true, \"is_nullable\": false}, {\"name\": \"body_content\", \"type\": \"text\", \"is_primary_key\": false, \"is_nullable\": false}, {\"name\": \"tags\", \"type\": \"array\", \"is_primary_key\": false, \"is_nullable\": true}]}, {\"name\": \"comments\", \"is_nested\": true, \"attributes\": [{\"name\": \"author\", \"type\": \"string\", \"is_primary_key\": false, \"is_nullable\": false}, {\"name\": \"message\", \"type\": \"text\", \"is_primary_key\": false, \"is_nullable\": false}]}], \"relationships\": [{\"from_entity\": \"comments\", \"to_entity\": \"articles\", \"cardinality\": \"1:N\"}], \"requirements\": {\"expected_read_write_ratio\": 40.0, \"is_realtime_essential\": false, \"data_growth_rate_gb_month\": 80.0}}",
+  "created_at": "2026-06-12T09:35:50.034857Z",
+  "recommendations": [
+    {
+      "id": 16,
+      "predicted_paradigm": "Document",
+      "normalization_target": "Denormalized_Flat",
+      "indexing_strategy": "Covering_Index",
+      "scaling_strategy": "Read_Replicas",
+      "generated_boilerplate": "{\n  \"articless\": {\n    \"$jsonSchema\": {\n      \"bsonType\": \"object\",\n      \"properties\": {\n        \"id\": {\n          \"bsonType\": \"int\"\n        },\n        \"body_content\": {\n          \"bsonType\": \"string\"\n        },\n        \"tags\": {\n          \"bsonType\": \"array\"\n        },\n        \"commentss\": {\n          \"bsonType\": \"array\",\n          \"items\": {\n            \"bsonType\": \"object\",\n            \"properties\": {\n              \"author\": {\n                \"bsonType\": \"string\"\n              },\n              \"message\": {\n                \"bsonType\": \"string\"\n              }\n            },\n            \"required\": [\n              \"author\",\n              \"message\"\n            ]\n          }\n        }\n      },\n      \"required\": [\n        \"id\",\n        \"body_content\"\n      ]\n    }\n  }\n}",
+      "created_at": "2026-06-12T09:35:50.036589Z"
+    }
+  ]
+}
+```

@@ -1,7 +1,7 @@
 {
   "entities": [
     {
-      "name": "orders",
+      "name": "articles",
       "is_nested": false,
       "attributes": [
         {
@@ -11,38 +11,32 @@
           "is_nullable": false
         },
         {
-          "name": "metadata",
-          "type": "json",
-          "is_primary_key": false,
-          "is_nullable": true
-        },
-        {
-          "name": "created_at",
-          "type": "datetime",
+          "name": "body_content",
+          "type": "text",
           "is_primary_key": false,
           "is_nullable": false
+        },
+        {
+          "name": "tags",
+          "type": "array",
+          "is_primary_key": false,
+          "is_nullable": true
         }
       ]
     },
     {
-      "name": "items",
-      "is_nested": false,
+      "name": "comments",
+      "is_nested": true,
       "attributes": [
         {
-          "name": "id",
-          "type": "int",
-          "is_primary_key": true,
-          "is_nullable": false
-        },
-        {
-          "name": "sku",
+          "name": "author",
           "type": "string",
           "is_primary_key": false,
           "is_nullable": false
         },
         {
-          "name": "price",
-          "type": "number",
+          "name": "message",
+          "type": "text",
           "is_primary_key": false,
           "is_nullable": false
         }
@@ -51,14 +45,14 @@
   ],
   "relationships": [
     {
-      "from_entity": "orders",
-      "to_entity": "items",
-      "cardinality": "N:M"
+      "from_entity": "comments",
+      "to_entity": "articles",
+      "cardinality": "1:N"
     }
   ],
   "requirements": {
-    "expected_read_write_ratio": 3.5,
+    "expected_read_write_ratio": 40.0,
     "is_realtime_essential": false,
-    "data_growth_rate_gb_month": 45.0
+    "data_growth_rate_gb_month": 80.0
   }
 }

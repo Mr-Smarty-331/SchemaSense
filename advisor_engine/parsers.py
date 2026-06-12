@@ -8,6 +8,7 @@ def normalize_parsed_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     I wrote this helper to make sure all my entity attributes have 'is_primary_key' and 'is_nullable' flags.
     If they are missing, I default them based on basic conventions.
+    Also, normalize requirements fields.
     """
     entities = data.get("entities", [])
     for entity in entities:
@@ -33,6 +34,14 @@ def normalize_parsed_data(data: Dict[str, Any]) -> Dict[str, Any]:
                 val = attr["is_nullable"]
                 if isinstance(val, str):
                     attr["is_nullable"] = val.lower() not in ("false", "0", "no")
+
+    # Normalize requirements keys (expected_read_write_ratio vs read_write_ratio)
+    requirements = data.get("requirements", {})
+    if "expected_read_write_ratio" in requirements and "read_write_ratio" not in requirements:
+        requirements["read_write_ratio"] = requirements["expected_read_write_ratio"]
+    elif "read_write_ratio" in requirements and "expected_read_write_ratio" not in requirements:
+        requirements["expected_read_write_ratio"] = requirements["read_write_ratio"]
+
     return data
 
 def parse_json(raw_json: str) -> Dict[str, Any]:

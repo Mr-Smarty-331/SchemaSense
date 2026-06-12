@@ -6,6 +6,8 @@ I built this Django-based project to automatically analyze database schema struc
 
 ## The Workflow
 
+![Workflow Diagram](workflow.jpeg)
+
 1. **Upload Payload**: You post your raw JSON or XML schema configuration to the API.
 2. **Secure Ingestion**: The system parses it securely (blocking XML XXE attacks via `defusedxml`) and normalizes constraint fields (`is_primary_key`, `is_nullable`).
 3. **Feature Extraction**: I extract 8 structural features (entity counts, nested entities, attribute density, cardinality score, read/write ratio, realtime needs, growth rates).

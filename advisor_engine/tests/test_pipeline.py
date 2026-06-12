@@ -8,8 +8,7 @@ from advisor_engine.models import AnalysisRequest, SchemaRecommendation
 @pytest.mark.django_db
 def test_analyze_valid_json_pipeline(mock_json_payload: str) -> None:
     """
-    I am testing the E2E analysis pipeline with a valid JSON payload.
-    Here I verify the 201 response, database record creation, and boilerplate output.
+    I am testing the E2E analysis pipeline with a valid JSON payload. Here I verify the 201 response, database record creation, and boilerplate output.
     """
     client = APIClient()
     url: str = reverse('analyze')

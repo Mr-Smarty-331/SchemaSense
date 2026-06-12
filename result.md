@@ -144,7 +144,13 @@ All E2E validation assertions completed successfully.
 
 ---
 
-## Test Run: 2026-06-12T09:05:56.583055Z
+## Test Case 1: Complex Relational Scenario (Junction Table & Native JSON mapping)
+
+### What to Verify in the Output
+* **Predicted Paradigm**: Should evaluate to Relational.
+* **Generated Code**:
+  1. The metadata field inside orders must use a native JSON type (or TEXT) rather than a default string VARCHAR.
+  2. It should output a separate junction table named orders_items (or similar) instead of embedding a foreign key inside the core tables.
 
 ### 1. Input Test payload (`test_requirement.json`)
 
@@ -256,119 +262,14 @@ Latest Audit Log Entry returned:
 }
 ```
 
-
 ---
 
-## Test Run: 2026-06-12T09:13:52.408413Z
+## Test Case 2: Nested Schema Layout (Document Store Mapping)
 
-### 1. Input Test payload (`test_requirement.json`)
-
-```json
-{
-  "entities": [
-    {
-      "name": "articles",
-      "is_nested": false,
-      "attributes": [
-        {
-          "name": "id",
-          "type": "int",
-          "is_primary_key": true,
-          "is_nullable": false
-        },
-        {
-          "name": "body_content",
-          "type": "text",
-          "is_primary_key": false,
-          "is_nullable": false
-        },
-        {
-          "name": "tags",
-          "type": "array",
-          "is_primary_key": false,
-          "is_nullable": true
-        }
-      ]
-    },
-    {
-      "name": "comments",
-      "is_nested": true,
-      "attributes": [
-        {
-          "name": "author",
-          "type": "string",
-          "is_primary_key": false,
-          "is_nullable": false
-        },
-        {
-          "name": "message",
-          "type": "text",
-          "is_primary_key": false,
-          "is_nullable": false
-        }
-      ]
-    }
-  ],
-  "relationships": [
-    {
-      "from_entity": "comments",
-      "to_entity": "articles",
-      "cardinality": "1:N"
-    }
-  ],
-  "requirements": {
-    "expected_read_write_ratio": 40.0,
-    "is_realtime_essential": false,
-    "data_growth_rate_gb_month": 80.0
-  }
-}
-```
-
-### 2. Received Output Response
-
-```json
-{
-  "status": "success",
-  "request_id": 15,
-  "recommendation": {
-    "id": 15,
-    "predicted_paradigm": "Relational",
-    "normalization_target": "3NF",
-    "indexing_strategy": "B-Tree_Heavy",
-    "scaling_strategy": "Vertical",
-    "generated_boilerplate": "CREATE TABLE articles (\n  id INT PRIMARY KEY,\n  body_content VARCHAR(255) NOT NULL,\n  tags VARCHAR(255),\n  comments_id INT,\n  FOREIGN KEY (comments_id) REFERENCES comments(id)\n);\n\nCREATE TABLE comments (\n  author VARCHAR(255) NOT NULL,\n  message VARCHAR(255) NOT NULL\n);",
-    "created_at": "2026-06-12T09:13:52.408413Z"
-  }
-}
-```
-
-### 3. Audit Logging Verification (`GET /api/v1/recommendations/`)
-
-Latest Audit Log Entry returned:
-```json
-{
-  "id": 15,
-  "payload_type": "JSON",
-  "raw_payload": "{\"entities\": [{\"name\": \"articles\", \"is_nested\": false, \"attributes\": [{\"name\": \"id\", \"type\": \"int\", \"is_primary_key\": true, \"is_nullable\": false}, {\"name\": \"body_content\", \"type\": \"text\", \"is_primary_key\": false, \"is_nullable\": false}, {\"name\": \"tags\", \"type\": \"array\", \"is_primary_key\": false, \"is_nullable\": true}]}, {\"name\": \"comments\", \"is_nested\": true, \"attributes\": [{\"name\": \"author\", \"type\": \"string\", \"is_primary_key\": false, \"is_nullable\": false}, {\"name\": \"message\", \"type\": \"text\", \"is_primary_key\": false, \"is_nullable\": false}]}], \"relationships\": [{\"from_entity\": \"comments\", \"to_entity\": \"articles\", \"cardinality\": \"1:N\"}], \"requirements\": {\"expected_read_write_ratio\": 40.0, \"is_realtime_essential\": false, \"data_growth_rate_gb_month\": 80.0}}",
-  "created_at": "2026-06-12T09:13:52.406867Z",
-  "recommendations": [
-    {
-      "id": 15,
-      "predicted_paradigm": "Relational",
-      "normalization_target": "3NF",
-      "indexing_strategy": "B-Tree_Heavy",
-      "scaling_strategy": "Vertical",
-      "generated_boilerplate": "CREATE TABLE articles (\n  id INT PRIMARY KEY,\n  body_content VARCHAR(255) NOT NULL,\n  tags VARCHAR(255),\n  comments_id INT,\n  FOREIGN KEY (comments_id) REFERENCES comments(id)\n);\n\nCREATE TABLE comments (\n  author VARCHAR(255) NOT NULL,\n  message VARCHAR(255) NOT NULL\n);",
-      "created_at": "2026-06-12T09:13:52.408413Z"
-    }
-  ]
-}
-```
-
-
----
-
-## Test Run: 2026-06-12T09:35:50.036589Z
+### What to Verify in the Output
+* **Predicted Paradigm**: Should evaluate to Document.
+* **Normalization Target**: Should evaluate to Denormalized_Flat.
+* **Generated Code**: The generated_boilerplate key must contain a valid MongoDB validation style JSON configuration block (`{"$jsonSchema": ...}`) instead of relational SQL commands. The comments structure should be nested within the articles object description.
 
 ### 1. Input Test payload (`test_requirement.json`)
 
@@ -469,6 +370,95 @@ Latest Audit Log Entry returned:
       "scaling_strategy": "Read_Replicas",
       "generated_boilerplate": "{\n  \"articless\": {\n    \"$jsonSchema\": {\n      \"bsonType\": \"object\",\n      \"properties\": {\n        \"id\": {\n          \"bsonType\": \"int\"\n        },\n        \"body_content\": {\n          \"bsonType\": \"string\"\n        },\n        \"tags\": {\n          \"bsonType\": \"array\"\n        },\n        \"commentss\": {\n          \"bsonType\": \"array\",\n          \"items\": {\n            \"bsonType\": \"object\",\n            \"properties\": {\n              \"author\": {\n                \"bsonType\": \"string\"\n              },\n              \"message\": {\n                \"bsonType\": \"string\"\n              }\n            },\n            \"required\": [\n              \"author\",\n              \"message\"\n            ]\n          }\n        }\n      },\n      \"required\": [\n        \"id\",\n        \"body_content\"\n      ]\n    }\n  }\n}",
       "created_at": "2026-06-12T09:35:50.036589Z"
+    }
+  ]
+}
+```
+
+
+---
+
+## Test Case 3: Extreme Growth / Write-Heavy Log Dump (Document Store & Horizontal Sharding)
+
+### What to Verify in the Output
+* **Predicted Paradigm**: Likely Document or Key-Value based on unstructured markers and write loads.
+* **Scaling Strategy**: Must evaluate to Horizontal_Sharding because the data influx rate far exceeds typical vertical storage performance bounds ($>500\text{ GB/month}$).
+
+### 1. Input Test payload (`test_requirement.json`)
+
+```json
+{
+  "entities": [
+    {
+      "name": "device_logs",
+      "is_nested": false,
+      "attributes": [
+        {
+          "name": "log_id",
+          "type": "int",
+          "is_primary_key": true,
+          "is_nullable": false
+        },
+        {
+          "name": "device_uuid",
+          "type": "string",
+          "is_primary_key": false,
+          "is_nullable": false
+        },
+        {
+          "name": "payload_dump",
+          "type": "variant",
+          "is_primary_key": false,
+          "is_nullable": false
+        }
+      ]
+    }
+  ],
+  "relationships": [],
+  "requirements": {
+    "expected_read_write_ratio": 0.2,
+    "is_realtime_essential": true,
+    "data_growth_rate_gb_month": 850.0
+  }
+}
+```
+
+### 2. Received Output Response
+
+```json
+{
+  "status": "success",
+  "request_id": 19,
+  "recommendation": {
+    "id": 19,
+    "predicted_paradigm": "Document",
+    "normalization_target": "Denormalized_Flat",
+    "indexing_strategy": "B-Tree_Heavy",
+    "scaling_strategy": "Horizontal_Sharding",
+    "generated_boilerplate": "{\n  \"device_logs\": {\n    \"$jsonSchema\": {\n      \"bsonType\": \"object\",\n      \"properties\": {\n        \"log_id\": {\n          \"bsonType\": \"int\"\n        },\n        \"device_uuid\": {\n          \"bsonType\": \"string\"\n        },\n        \"payload_dump\": {\n          \"bsonType\": \"object\"\n        }\n      },\n      \"required\": [\n        \"log_id\",\n        \"device_uuid\",\n        \"payload_dump\"\n      ]\n    }\n  }\n}",
+    "created_at": "2026-06-12T09:42:45.995647Z"
+  }
+}
+```
+
+### 3. Audit Logging Verification (`GET /api/v1/recommendations/`)
+
+Latest Audit Log Entry returned:
+```json
+{
+  "id": 19,
+  "payload_type": "JSON",
+  "raw_payload": "{\"entities\": [{\"name\": \"device_logs\", \"is_nested\": false, \"attributes\": [{\"name\": \"log_id\", \"type\": \"int\", \"is_primary_key\": true, \"is_nullable\": false}, {\"name\": \"device_uuid\", \"type\": \"string\", \"is_primary_key\": false, \"is_nullable\": false}, {\"name\": \"payload_dump\", \"type\": \"variant\", \"is_primary_key\": false, \"is_nullable\": false}]}], \"relationships\": [], \"requirements\": {\"expected_read_write_ratio\": 0.2, \"is_realtime_essential\": true, \"data_growth_rate_gb_month\": 850.0}}",
+  "created_at": "2026-06-12T09:42:45.994104Z",
+  "recommendations": [
+    {
+      "id": 19,
+      "predicted_paradigm": "Document",
+      "normalization_target": "Denormalized_Flat",
+      "indexing_strategy": "B-Tree_Heavy",
+      "scaling_strategy": "Horizontal_Sharding",
+      "generated_boilerplate": "{\n  \"device_logs\": {\n    \"$jsonSchema\": {\n      \"bsonType\": \"object\",\n      \"properties\": {\n        \"log_id\": {\n          \"bsonType\": \"int\"\n        },\n        \"device_uuid\": {\n          \"bsonType\": \"string\"\n        },\n        \"payload_dump\": {\n          \"bsonType\": \"object\"\n        }\n      },\n      \"required\": [\n        \"log_id\",\n        \"device_uuid\",\n        \"payload_dump\"\n      ]\n    }\n  }\n}",
+      "created_at": "2026-06-12T09:42:45.995647Z"
     }
   ]
 }

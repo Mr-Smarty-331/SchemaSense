@@ -211,7 +211,7 @@ class BoilerplateGenerator:
                     bson_type = "bool"
                 elif "array" in data_type:
                     bson_type = "array"
-                elif "json" in data_type:
+                elif any(t in data_type for t in ("variant", "json", "dict")):
                     bson_type = "object"
                 else:
                     bson_type = "string"
@@ -236,7 +236,8 @@ class BoilerplateGenerator:
                     
                 field_name = child_name.lower()
                 if card in ("1:N", "ONE:MANY"):
-                    field_name = f"{field_name}s"
+                    if not field_name.endswith("s"):
+                        field_name = f"{field_name}s"
                     properties[field_name] = {
                         "bsonType": "array",
                         "items": child_schema
@@ -262,6 +263,9 @@ class BoilerplateGenerator:
                 if required:
                     schema["$jsonSchema"]["required"] = required
                     
-                root_schemas[ent_name.lower() + "s"] = schema
+                root_name = ent_name.lower()
+                if not root_name.endswith("s"):
+                    root_name = f"{root_name}s"
+                root_schemas[root_name] = schema
                 
         return json.dumps(root_schemas, indent=2)

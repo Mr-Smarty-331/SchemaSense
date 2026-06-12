@@ -1,0 +1,23 @@
+# Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django files
+db.sqlite3
+db.sqlite3-journal
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE / System files
+.DS_Store
+.pytest_cache/
+.vscode/
+.idea/
+
+# Datasets
+dataset/

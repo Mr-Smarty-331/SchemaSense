@@ -1,0 +1,34 @@
+{
+  "entities": [
+    {
+      "name": "users",
+      "is_nested": false,
+      "attributes": [
+        {"name": "id", "type": "int", "is_primary_key": true, "is_nullable": false},
+        {"name": "email", "type": "string", "is_primary_key": false, "is_nullable": false},
+        {"name": "profile_data", "type": "json", "is_primary_key": false, "is_nullable": true}
+      ]
+    },
+    {
+      "name": "products",
+      "is_nested": false,
+      "attributes": [
+        {"name": "id", "type": "int", "is_primary_key": true, "is_nullable": false},
+        {"name": "title", "type": "string", "is_primary_key": false, "is_nullable": false},
+        {"name": "price", "type": "number", "is_primary_key": false, "is_nullable": false}
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from_entity": "users",
+      "to_entity": "products",
+      "cardinality": "N:M"
+    }
+  ],
+  "requirements": {
+    "expected_read_write_ratio": 25.0,
+    "is_realtime_essential": false,
+    "data_growth_rate_gb_month": 15.5
+  }
+}

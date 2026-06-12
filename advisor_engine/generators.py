@@ -27,19 +27,24 @@ class BoilerplateGenerator:
         entities = self.parsed_data.get("entities", [])
         relationships = self.parsed_data.get("relationships", [])
         
-        # Build a map of foreign keys so I know where they go
+        # Build a map of foreign keys so I know where they go, separating N:M relations
         fkeys_by_table: Dict[str, List[Dict[str, str]]] = {}
+        m2m_relationships: List[Dict[str, Any]] = []
         for rel in relationships:
             from_ent = rel.get("from_entity", "")
             to_ent = rel.get("to_entity", "")
-            cardinality = rel.get("cardinality", "1:1")
+            cardinality = str(rel.get("cardinality", "1:1")).upper().replace(" ", "")
             
+            if cardinality in ("N:M", "M:N", "MANY:MANY"):
+                m2m_relationships.append(rel)
+                continue
+                
             # For 1:N relations, the child holds the foreign key reference
             if cardinality in ("1:N", "ONE:MANY"):
                 child_table = to_ent
                 parent_table = from_ent
             else:
-                # Fallback default mapping
+                # Fallback default mapping (e.g. 1:1)
                 child_table = to_ent
                 parent_table = from_ent
                 
@@ -66,7 +71,9 @@ class BoilerplateGenerator:
                 is_null = attr.get("is_nullable", True)
                 
                 # Map datatype names to their SQL equivalents
-                if any(t in data_type for t in ("string", "varchar", "text")):
+                if "json" in data_type:
+                    sql_type = "JSON"
+                elif any(t in data_type for t in ("string", "varchar", "text")):
                     sql_type = "VARCHAR(255)"
                 elif any(t in data_type for t in ("integer", "int", "number")):
                     sql_type = "INT"
@@ -99,6 +106,27 @@ class BoilerplateGenerator:
             create_stmt = f"CREATE TABLE {name} (\n{table_body}\n);"
             sql_statements.append(create_stmt)
             
+        # Programmatically generate junction tables for Many-to-Many links
+        for rel in m2m_relationships:
+            from_ent = rel.get("from_entity", "")
+            to_ent = rel.get("to_entity", "")
+            
+            if from_ent and to_ent:
+                junction_name = f"{from_ent.lower()}_{to_ent.lower()}"
+                col1 = f"{from_ent.lower()}_id"
+                col2 = f"{to_ent.lower()}_id"
+                
+                junction_lines = [
+                    f"  {col1} INT NOT NULL",
+                    f"  {col2} INT NOT NULL",
+                    f"  PRIMARY KEY ({col1}, {col2})",
+                    f"  FOREIGN KEY ({col1}) REFERENCES {from_ent}(id)",
+                    f"  FOREIGN KEY ({col2}) REFERENCES {to_ent}(id)"
+                ]
+                junction_body = ",\n".join(junction_lines)
+                junction_stmt = f"CREATE TABLE {junction_name} (\n{junction_body}\n);"
+                sql_statements.append(junction_stmt)
+                
         return "\n\n".join(sql_statements)
 
     def _generate_nosql(self) -> str:

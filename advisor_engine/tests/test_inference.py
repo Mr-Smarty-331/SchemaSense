@@ -86,3 +86,32 @@ def test_boilerplate_generator_nosql(mock_nosql_json_payload: str) -> None:
     
     assert "delivery" in properties
     assert properties["delivery"]["bsonType"] == "object"
+
+
+def test_boilerplate_generator_sql_m2m_and_json(mock_nosql_json_payload: str) -> None:
+    """
+    I want to verify that BoilerplateGenerator produces a junction table for N:M relationships
+    and compiles the "json" data type directly to "JSON" column type.
+    """
+    parsed_data: Dict[str, Any] = parse_json(mock_nosql_json_payload)
+    # The payload has relationships: Order -> Item (1:N), Order -> Delivery (1:1)
+    # Let's add a Many-to-Many relationship (N:M) to test the junction table generation
+    parsed_data["relationships"].append({
+        "from_entity": "Order",
+        "to_entity": "Item",
+        "cardinality": "N:M"
+    })
+    
+    generator = BoilerplateGenerator(parsed_data, "Relational")
+    sql_output: str = generator.generate()
+    
+    # 1. Assert junction table exists and contains composite primary key
+    assert "CREATE TABLE order_item" in sql_output
+    assert "PRIMARY KEY (order_id, item_id)" in sql_output
+    assert "FOREIGN KEY (order_id) REFERENCES Order(id)" in sql_output
+    assert "FOREIGN KEY (item_id) REFERENCES Item(id)" in sql_output
+    
+    # 2. Assert that "json" type maps to "JSON" column type
+    # (Order has 'metadata' with json datatype in mock_nosql_json_payload)
+    assert "metadata JSON" in sql_output
+

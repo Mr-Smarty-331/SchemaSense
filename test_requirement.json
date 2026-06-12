@@ -1,34 +1,64 @@
 {
   "entities": [
     {
-      "name": "users",
+      "name": "orders",
       "is_nested": false,
       "attributes": [
-        {"name": "id", "type": "int", "is_primary_key": true, "is_nullable": false},
-        {"name": "email", "type": "string", "is_primary_key": false, "is_nullable": false},
-        {"name": "profile_data", "type": "json", "is_primary_key": false, "is_nullable": true}
+        {
+          "name": "id",
+          "type": "int",
+          "is_primary_key": true,
+          "is_nullable": false
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "is_primary_key": false,
+          "is_nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "is_primary_key": false,
+          "is_nullable": false
+        }
       ]
     },
     {
-      "name": "products",
+      "name": "items",
       "is_nested": false,
       "attributes": [
-        {"name": "id", "type": "int", "is_primary_key": true, "is_nullable": false},
-        {"name": "title", "type": "string", "is_primary_key": false, "is_nullable": false},
-        {"name": "price", "type": "number", "is_primary_key": false, "is_nullable": false}
+        {
+          "name": "id",
+          "type": "int",
+          "is_primary_key": true,
+          "is_nullable": false
+        },
+        {
+          "name": "sku",
+          "type": "string",
+          "is_primary_key": false,
+          "is_nullable": false
+        },
+        {
+          "name": "price",
+          "type": "number",
+          "is_primary_key": false,
+          "is_nullable": false
+        }
       ]
     }
   ],
   "relationships": [
     {
-      "from_entity": "users",
-      "to_entity": "products",
+      "from_entity": "orders",
+      "to_entity": "items",
       "cardinality": "N:M"
     }
   ],
   "requirements": {
-    "expected_read_write_ratio": 25.0,
+    "expected_read_write_ratio": 3.5,
     "is_realtime_essential": false,
-    "data_growth_rate_gb_month": 15.5
+    "data_growth_rate_gb_month": 45.0
   }
 }

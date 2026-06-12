@@ -140,3 +140,118 @@ curl -X GET http://127.0.0.1:8000/api/v1/recommendations/
 ```
 
 All E2E validation assertions completed successfully.
+
+
+---
+
+## Test Run: 2026-06-12T09:05:56.583055Z
+
+### 1. Input Test payload (`test_requirement.json`)
+
+```json
+{
+  "entities": [
+    {
+      "name": "orders",
+      "is_nested": false,
+      "attributes": [
+        {
+          "name": "id",
+          "type": "int",
+          "is_primary_key": true,
+          "is_nullable": false
+        },
+        {
+          "name": "metadata",
+          "type": "json",
+          "is_primary_key": false,
+          "is_nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "datetime",
+          "is_primary_key": false,
+          "is_nullable": false
+        }
+      ]
+    },
+    {
+      "name": "items",
+      "is_nested": false,
+      "attributes": [
+        {
+          "name": "id",
+          "type": "int",
+          "is_primary_key": true,
+          "is_nullable": false
+        },
+        {
+          "name": "sku",
+          "type": "string",
+          "is_primary_key": false,
+          "is_nullable": false
+        },
+        {
+          "name": "price",
+          "type": "number",
+          "is_primary_key": false,
+          "is_nullable": false
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from_entity": "orders",
+      "to_entity": "items",
+      "cardinality": "N:M"
+    }
+  ],
+  "requirements": {
+    "expected_read_write_ratio": 3.5,
+    "is_realtime_essential": false,
+    "data_growth_rate_gb_month": 45.0
+  }
+}
+```
+
+### 2. Received Output Response
+
+```json
+{
+  "status": "success",
+  "request_id": 14,
+  "recommendation": {
+    "id": 14,
+    "predicted_paradigm": "Relational",
+    "normalization_target": "3NF",
+    "indexing_strategy": "B-Tree_Heavy",
+    "scaling_strategy": "Vertical",
+    "generated_boilerplate": "CREATE TABLE orders (\n  id INT PRIMARY KEY,\n  metadata JSON,\n  created_at TIMESTAMP NOT NULL\n);\n\nCREATE TABLE items (\n  id INT PRIMARY KEY,\n  sku VARCHAR(255) NOT NULL,\n  price INT NOT NULL\n);\n\nCREATE TABLE orders_items (\n  orders_id INT NOT NULL,\n  items_id INT NOT NULL,\n  PRIMARY KEY (orders_id, items_id),\n  FOREIGN KEY (orders_id) REFERENCES orders(id),\n  FOREIGN KEY (items_id) REFERENCES items(id)\n);",
+    "created_at": "2026-06-12T09:05:56.583055Z"
+  }
+}
+```
+
+### 3. Audit Logging Verification (`GET /api/v1/recommendations/`)
+
+Latest Audit Log Entry returned:
+```json
+{
+  "id": 14,
+  "payload_type": "JSON",
+  "raw_payload": "{\"entities\": [{\"name\": \"orders\", \"is_nested\": false, \"attributes\": [{\"name\": \"id\", \"type\": \"int\", \"is_primary_key\": true, \"is_nullable\": false}, {\"name\": \"metadata\", \"type\": \"json\", \"is_primary_key\": false, \"is_nullable\": true}, {\"name\": \"created_at\", \"type\": \"datetime\", \"is_primary_key\": false, \"is_nullable\": false}]}, {\"name\": \"items\", \"is_nested\": false, \"attributes\": [{\"name\": \"id\", \"type\": \"int\", \"is_primary_key\": true, \"is_nullable\": false}, {\"name\": \"sku\", \"type\": \"string\", \"is_primary_key\": false, \"is_nullable\": false}, {\"name\": \"price\", \"type\": \"number\", \"is_primary_key\": false, \"is_nullable\": false}]}], \"relationships\": [{\"from_entity\": \"orders\", \"to_entity\": \"items\", \"cardinality\": \"N:M\"}], \"requirements\": {\"expected_read_write_ratio\": 3.5, \"is_realtime_essential\": false, \"data_growth_rate_gb_month\": 45.0}}",
+  "created_at": "2026-06-12T09:05:56.576252Z",
+  "recommendations": [
+    {
+      "id": 14,
+      "predicted_paradigm": "Relational",
+      "normalization_target": "3NF",
+      "indexing_strategy": "B-Tree_Heavy",
+      "scaling_strategy": "Vertical",
+      "generated_boilerplate": "CREATE TABLE orders (\n  id INT PRIMARY KEY,\n  metadata JSON,\n  created_at TIMESTAMP NOT NULL\n);\n\nCREATE TABLE items (\n  id INT PRIMARY KEY,\n  sku VARCHAR(255) NOT NULL,\n  price INT NOT NULL\n);\n\nCREATE TABLE orders_items (\n  orders_id INT NOT NULL,\n  items_id INT NOT NULL,\n  PRIMARY KEY (orders_id, items_id),\n  FOREIGN KEY (orders_id) REFERENCES orders(id),\n  FOREIGN KEY (items_id) REFERENCES items(id)\n);",
+      "created_at": "2026-06-12T09:05:56.583055Z"
+    }
+  ]
+}
+```

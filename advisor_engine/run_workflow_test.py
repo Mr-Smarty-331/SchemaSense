@@ -59,10 +59,9 @@ def run_workflow_verification() -> None:
         print("Latest audit log entry:")
         print(json.dumps(history_data[0], indent=2))
         
-    print("\n--------------------------------------------------------")
-    print("3. Generating result.md report in project root...")
-    
-    result_md_content = f"""# E2E System Workflow Execution Results
+    result_md_path = os.path.join(root_dir, "result.md")
+    if not os.path.exists(result_md_path):
+        result_md_content = f"""# E2E System Workflow Execution Results
 
 This file documents the production-grade validation test executing the database schema recommendation workflow.
 
@@ -139,17 +138,43 @@ curl -X GET http://127.0.0.1:8000/api/v1/recommendations/
 
 ### Latest Audit Log Entry returned:
 ```json
-{json.dumps(history_data[0] if history_data else {{}}, indent=2)}
+{json.dumps(history_data[0] if history_data else {}, indent=2)}
 ```
 
 All E2E validation assertions completed successfully.
 """
+        with open(result_md_path, "w", encoding="utf-8") as f:
+            f.write(result_md_content)
+    else:
+        append_content = f"""
 
-    result_md_path = os.path.join(root_dir, "result.md")
-    with open(result_md_path, "w", encoding="utf-8") as f:
-        f.write(result_md_content)
+---
+
+## Test Run: {response_data.get('recommendation', {}).get('created_at', 'N/A')}
+
+### 1. Input Test payload (`test_requirement.json`)
+
+```json
+{raw_payload.strip()}
+```
+
+### 2. Received Output Response
+
+```json
+{json.dumps(response_data, indent=2)}
+```
+
+### 3. Audit Logging Verification (`GET /api/v1/recommendations/`)
+
+Latest Audit Log Entry returned:
+```json
+{json.dumps(history_data[0] if history_data else {}, indent=2)}
+```
+"""
+        with open(result_md_path, "a", encoding="utf-8") as f:
+            f.write(append_content)
         
-    print(f"Success! Generated '{result_md_path}' successfully.")
+    print(f"Success! Appended new run results to '{result_md_path}'.")
 
 if __name__ == "__main__":
     run_workflow_verification()

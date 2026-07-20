@@ -1,5 +1,7 @@
 # ML-Driven DB Schema Recommendation System
 
+> **🚀 E2E Execution & Validation Results**: **[Click here to view full E2E Test Results & Benchmark Report (result.md)](file:///Users/ayushraj/Desktop/projects/DB-schema-recomm-sys/result.md)**
+
 I built this Django-based project to automatically analyze database schema structures (JSON/XML) and recommend the best database paradigm (Relational, Document, Graph, Key-Value), normalization targets, indexing strategies, and scaling paths using a trained Random Forest model. It also auto-generates copy-pasteable SQL DDL or MongoDB `$jsonSchema` validators.
 
 ---
@@ -16,6 +18,20 @@ I built this Django-based project to automatically analyze database schema struc
    * **Relational/Graph**: Standard `CREATE TABLE` statements with primary keys, nullability, and cascading `FOREIGN KEY` constraints.
    * **Document**: A deeply nested MongoDB `$jsonSchema` validator where sub-entities are embedded as nested documents/arrays.
 6. **API Response & Audit Log**: Returns the recommendation with the code block, and logs the request to the database history.
+
+---
+
+## Production E2E Execution Results
+
+Below is a summary of the end-to-end validation test cases executed against the system. Full raw payloads, API JSON responses, and SQLite audit logs are documented in **[result.md](file:///Users/ayushraj/Desktop/projects/DB-schema-recomm-sys/result.md)**.
+
+| Test Case | Scenario / Input Profile | Predicted Paradigm | Normalization Target | Indexing Strategy | Scaling Strategy | Key Verification Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **TC 1** | Complex Relational Scenario (`orders` & `items`, `N:M` relation, `json` metadata) | **Relational** | 3NF | B-Tree Heavy | Vertical | ✅ Passed (Native `JSON` & Junction Table `orders_items` generated) |
+| **TC 2** | Nested Schema Layout (`articles` & `comments`, `tags: array`, `is_nested: true`) | **Document** | Denormalized Flat | Covering Index | Read Replicas | ✅ Passed (MongoDB `$jsonSchema` generated with embedded `comments` array) |
+| **TC 3** | High-Volume Log Dump (`device_logs`, `variant` payload, $850\text{ GB/mo}$, ratio 0.2) | **Document** | Denormalized Flat | B-Tree Heavy | Horizontal Sharding | ✅ Passed (Sharding triggered for $>500\text{ GB/mo}$, `variant` mapped to `object`) |
+
+For full code snippets and logs, see **[result.md](file:///Users/ayushraj/Desktop/projects/DB-schema-recomm-sys/result.md)**.
 
 ---
 
